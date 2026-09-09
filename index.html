@@ -308,12 +308,12 @@ function renderFullMarkdown(md) {
 
     // H1
     if (trimmed.startsWith('# ') && !trimmed.startsWith('## ')) {
-      html += '<h1>' + inlineFormat(escapeHtml(trimmed.slice(2))) + '</h1>'; continue;
+      html += '<h1>' + escapeHtml(inlineFormat(trimmed.slice(2))) + '</h1>'; continue;
     }
 
     // H2
     if (trimmed.startsWith('## ')) {
-      html += '<h2>' + inlineFormat(escapeHtml(trimmed.slice(3))) + '</h2>'; continue;
+      html += '<h2>' + escapeHtml(inlineFormat(trimmed.slice(3))) + '</h2>'; continue;
     }
 
     // H3 - item title
@@ -321,13 +321,13 @@ function renderFullMarkdown(md) {
       let title = trimmed.slice(4);
       // Extract type tag
       title = title.replace(/`?\[([^\]]+)\]`?/g, renderTag);
-      title = inlineFormat(escapeHtml(title));
+      title = escapeHtml(inlineFormat(title));
       html += '<h3>' + title + '</h3>'; continue;
     }
 
     // Summary line (starts with lightbulb emoji)
     if (trimmed.startsWith('\u{1F4A1}') || trimmed.startsWith('💡')) {
-      html += '<p class="summary">' + inlineFormat(escapeHtml(trimmed)) + '</p>'; continue;
+      html += '<p class="summary">' + escapeHtml(inlineFormat(trimmed)) + '</p>'; continue;
     }
 
     // Blockquote (price, source, date)
@@ -336,7 +336,7 @@ function renderFullMarkdown(md) {
       if (!inBlockquote) { html += '<blockquote>'; inBlockquote = true; }
       // Format links and tags in blockquote
       content = content.replace(/`?\[([^\]]+)\]`?/g, renderTag);
-      content = inlineFormat(escapeHtml(content));
+      content = escapeHtml(inlineFormat(content));
       html += content + '<br>'; continue;
     }
 
@@ -345,13 +345,13 @@ function renderFullMarkdown(md) {
       if (!inList) { html += '<ol>'; inList = true; }
       let content = trimmed.replace(/^\d+[.)]\s*/, '');
       content = content.replace(/`?\[([^\]]+)\]`?/g, renderTag);
-      html += '<li>' + inlineFormat(escapeHtml(content)) + '</li>'; continue;
+      html += '<li>' + escapeHtml(inlineFormat(content)) + '</li>'; continue;
     }
 
     // Regular paragraph
     let p = trimmed;
     p = p.replace(/`?\[([^\]]+)\]`?/g, renderTag);
-    html += '<p>' + inlineFormat(escapeHtml(p)) + '</p>';
+    html += '<p>' + escapeHtml(inlineFormat(p)) + '</p>';
   }
 
   if (inList) html += '</ol>';
@@ -376,7 +376,7 @@ function renderSimpleMarkdown(md) {
     }
     // Format tags
     trimmed = trimmed.replace(/`?\[([^\]]+)\]`?/g, renderTag);
-    trimmed = inlineFormat(escapeHtml(trimmed));
+    trimmed = escapeHtml(inlineFormat(trimmed));
     html += '<li>' + trimmed + '</li>';
   }
 
