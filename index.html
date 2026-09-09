@@ -258,21 +258,35 @@ function switchVersion(version) {
 }
 
 // ======== Markdown Parsers ========
-function escapeHtml(text) {
-  return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// Token-based inline formatter: handles tags, links, bold, and HTML-escapes plain text.
+// Processes the string left-to-right, matching markdown patterns first, escaping plain text between them.
 function inlineFormat(text) {
-  // Bold
-  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  // Links
-  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-  return text;
-}
-
-function renderTag(match) {
-  const name = match.replace(/[\[\]`]/g, '');
-  return '<span class="tag tag-' + name + '">' + name + '</span>';
+  let result = '', i = 0;
+  const tagRe = /^`?\[([^\]]+)\]`?(?!\()/;
+  const linkRe = /^\[([^\]]+)\]\(([^)]+)\)/;
+  const boldRe = /^\*\*(.+?)\*\*/;
+  while (i < text.length) {
+    const rest = text.slice(i);
+    let m;
+    if ((m = rest.match(tagRe))) {
+      result += '<span class="tag tag-' + m[1] + '">' + escapeHtml(m[1]) + '</span>';
+      i += m[0].length;
+    } else if ((m = rest.match(linkRe))) {
+      result += '<a href="' + escapeHtml(m[2]) + '" target="_blank" rel="noopener">' + escapeHtml(m[1]) + '</a>';
+      i += m[0].length;
+    } else if ((m = rest.match(boldRe))) {
+      result += '<strong>' + escapeHtml(m[1]) + '</strong>';
+      i += m[0].length;
+    } else {
+      result += escapeHtml(text[i]);
+      i++;
+    }
+  }
+  return result;
 }
 
 function renderFullMarkdown(md) {
@@ -308,26 +322,25 @@ function renderFullMarkdown(md) {
 
     // H1
     if (trimmed.startsWith('# ') && !trimmed.startsWith('## ')) {
-      html += '<h1>' + escapeHtml(inlineFormat(trimmed.slice(2))) + '</h1>'; continue;
+      html += '<h1>' + inlineFormat(trimmed.slice(2)) + '</h1>'; continue;
     }
 
     // H2
     if (trimmed.startsWith('## ')) {
-      html += '<h2>' + escapeHtml(inlineFormat(trimmed.slice(3))) + '</h2>'; continue;
+      html += '<h2>' + inlineFormat(trimmed.slice(3)) + '</h2>'; continue;
     }
 
     // H3 - item title
     if (trimmed.startsWith('### ')) {
       let title = trimmed.slice(4);
       // Extract type tag
-      title = title.replace(/`?\[([^\]]+)\]`?/g, renderTag);
-      title = escapeHtml(inlineFormat(title));
+      title = inlineFormat(title);
       html += '<h3>' + title + '</h3>'; continue;
     }
 
     // Summary line (starts with lightbulb emoji)
     if (trimmed.startsWith('\u{1F4A1}') || trimmed.startsWith('💡')) {
-      html += '<p class="summary">' + escapeHtml(inlineFormat(trimmed)) + '</p>'; continue;
+      html += '<p class="summary">' + inlineFormat(trimmed) + '</p>'; continue;
     }
 
     // Blockquote (price, source, date)
@@ -335,8 +348,7 @@ function renderFullMarkdown(md) {
       let content = trimmed.replace(/^>\s*/, '');
       if (!inBlockquote) { html += '<blockquote>'; inBlockquote = true; }
       // Format links and tags in blockquote
-      content = content.replace(/`?\[([^\]]+)\]`?/g, renderTag);
-      content = escapeHtml(inlineFormat(content));
+      content = inlineFormat(content);
       html += content + '<br>'; continue;
     }
 
@@ -344,14 +356,12 @@ function renderFullMarkdown(md) {
     if (/^\d+[.)]\s/.test(trimmed)) {
       if (!inList) { html += '<ol>'; inList = true; }
       let content = trimmed.replace(/^\d+[.)]\s*/, '');
-      content = content.replace(/`?\[([^\]]+)\]`?/g, renderTag);
-      html += '<li>' + escapeHtml(inlineFormat(content)) + '</li>'; continue;
+      html += '<li>' + inlineFormat(content) + '</li>'; continue;
     }
 
     // Regular paragraph
     let p = trimmed;
-    p = p.replace(/`?\[([^\]]+)\]`?/g, renderTag);
-    html += '<p>' + escapeHtml(inlineFormat(p)) + '</p>';
+    html += '<p>' + inlineFormat(p) + '</p>';
   }
 
   if (inList) html += '</ol>';
@@ -374,9 +384,8 @@ function renderSimpleMarkdown(md) {
     if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       trimmed = trimmed.slice(2);
     }
-    // Format tags
-    trimmed = trimmed.replace(/`?\[([^\]]+)\]`?/g, renderTag);
-    trimmed = escapeHtml(inlineFormat(trimmed));
+    // Format inline (tags, links, bold)
+    trimmed = inlineFormat(trimmed);
     html += '<li>' + trimmed + '</li>';
   }
 
