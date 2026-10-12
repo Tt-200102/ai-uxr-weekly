@@ -293,6 +293,7 @@ function inlineFormat(text) {
 
 function renderFullMarkdown(md) {
   if (!md) return '<p class="empty-state">暂无完整版内容</p>';
+  md = md.replace(/<!--[\s\S]*?-->/g, ''); // 剥离 item 编号等 HTML 注释，避免渲染成可见文字
 
   const lines = md.split('\n');
   let html = '';
@@ -374,6 +375,7 @@ function renderFullMarkdown(md) {
 
 function renderSimpleMarkdown(md) {
   if (!md) return '<p class="empty-state">暂无简版内容</p>';
+  md = md.replace(/<!--[\s\S]*?-->/g, ''); // 剥离 item 编号等 HTML 注释，避免渲染成可见文字
 
   const lines = md.split('\n').filter(l => l.trim());
   let html = '<ul class="simple-list">';
