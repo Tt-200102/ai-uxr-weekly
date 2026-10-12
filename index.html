@@ -197,7 +197,7 @@ function updateHeaderMeta() {
 function renderSidebar() {
   const list = document.getElementById('sidebarList');
   list.innerHTML = REPORTS.map((r, i) => {
-    const label = formatDateLabel(r.date_start, r.date_end);
+    const label = r.title || formatDateLabel(r.date_start, r.date_end);
     const count = r.count || '';
     return '<li class="sidebar-item' + (i === currentIndex ? ' active' : '') + '" onclick="selectReport(' + i + ')">' +
       '<span class="dot"></span>' + label +
@@ -232,8 +232,10 @@ function renderReport() {
   document.getElementById('controls').style.display = 'flex';
 
   // Update date
-  document.getElementById('reportDate').textContent =
-    r.date_start.replace(/-/g, '/') + ' — ' + r.date_end.replace(/-/g, '/');
+  const _dateText = r.date_start === r.date_end
+    ? r.date_start.replace(/-/g, '/')
+    : r.date_start.replace(/-/g, '/') + ' — ' + r.date_end.replace(/-/g, '/');
+  document.getElementById('reportDate').textContent = r.title || _dateText;
 
   // Update stats
   if (r.count) {
