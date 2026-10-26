@@ -197,7 +197,9 @@ function updateHeaderMeta() {
 function renderSidebar() {
   const list = document.getElementById('sidebarList');
   list.innerHTML = REPORTS.map((r, i) => {
-    const label = formatDateLabel(r.date_start, r.date_end);
+    const label = r.date_start === '2026-10-12' && r.date_end === '2026-10-12' && r.title === 'AI+用研前沿专题 · Personal Agent 与用研'
+      ? '10.12-前沿专题：Personal Agent 与用研'
+      : formatDateLabel(r.date_start, r.date_end);
     const count = r.count || '';
     return '<li class="sidebar-item' + (i === currentIndex ? ' active' : '') + '" onclick="selectReport(' + i + ')">' +
       '<span class="dot"></span>' + label +
